@@ -107,5 +107,24 @@ def main(unused_arg):
     logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=50)
 
     mnist_classifier.fit(
-
+        x=train_data,
+        y=train_labels,
+        batch_size=100,
+        steps=20000,
+        monitors=[logging_hook]
     )
+
+    metrics = {
+        'accuracy':
+            learn.metric_spec.MetricSpec(
+                metric_fn=tf.metrics.accuracy, prediction_key="classes"
+            ),
+    }
+
+    eval_results = mnist_classifier.evaluate(
+        x=eval_data,
+        y=eval_labels,
+        metrics=metrics
+    )
+
+    print(eval_results)
