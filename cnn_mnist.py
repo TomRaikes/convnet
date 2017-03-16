@@ -9,11 +9,8 @@ from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_f
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-if __name__ == '__main__':
-    tf.app.run()
-
-def cnn_model_fn(features,labels,mode):
-    input_layer = tf.reshape(features, [-1, 28, 28, -1])
+def cnn_model_fn(features, labels, mode):
+    input_layer = tf.reshape(features, [-1, 28, 28, 1])
 
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
@@ -43,7 +40,7 @@ def cnn_model_fn(features,labels,mode):
         strides=2
     )
 
-    pool2_flat = tf.reshape(pool2, [-1, 7*7*64])
+    pool2_flat = tf.reshape(pool2, [-1, 7 * 7 * 64])
 
     dense = tf.layers.dense(
         inputs=pool2_flat,
@@ -72,15 +69,15 @@ def cnn_model_fn(features,labels,mode):
         train_op = tf.contrib.layers.optimize_loss(
             loss=loss,
             global_step=tf.contrib.framework.get_global_step(),
-            learning=0.001,
+            learning_rate=0.001,
             optimizer="SGD"
         )
 
     predictions = {
-        "classes" : tf.argmax(
-            inputs=logit, axis=1
+        "classes": tf.argmax(
+            input=logit, axis=1
         ),
-        "probabilities" : tf.nn.softmax(
+        "probabilities": tf.nn.softmax(
             logit, name="softmax_tensor"
         )
     }
@@ -91,6 +88,7 @@ def cnn_model_fn(features,labels,mode):
         loss=loss,
         train_op=train_op
     )
+
 
 def main(unused_arg):
     mnist = learn.datasets.load_dataset("mnist")
@@ -103,7 +101,7 @@ def main(unused_arg):
         model_fn=cnn_model_fn, model_dir="temp/mnist_conv_model"
     )
 
-    tensors_to_log = {"probabilities" : "softmax_tensor"}
+    tensors_to_log = {"probabilities": "softmax_tensor"}
     logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=50)
 
     mnist_classifier.fit(
@@ -116,7 +114,7 @@ def main(unused_arg):
 
     metrics = {
         'accuracy':
-            learn.metric_spec.MetricSpec(
+            learn.MetricSpec(
                 metric_fn=tf.metrics.accuracy, prediction_key="classes"
             ),
     }
@@ -128,3 +126,7 @@ def main(unused_arg):
     )
 
     print(eval_results)
+
+
+if __name__ == "__main__":
+    tf.app.run()
